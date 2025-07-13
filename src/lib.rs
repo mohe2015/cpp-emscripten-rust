@@ -106,16 +106,16 @@ const ALIGN: usize = std::mem::size_of::<usize>() * 2;
 // could be implemented wrong
 #[no_mangle]
 pub unsafe extern "C" fn posix_memalign(memptr: *mut *mut u8, alignment: usize, size: usize) -> i32 {
-    let layout = std::alloc::Layout::from_size_align_unchecked(size + alignment, alignment);
+    let layout = std::alloc::Layout::from_size_align(size + alignment, alignment).unwrap();
     let ptr = std::alloc::alloc(layout);
 
     if ptr.is_null() {
         *memptr = std::ptr::null_mut();
-        return -1;
+        return 12;
     }
     *ptr.cast::<usize>() = size;
 
-    *memptr = ptr.add(ALIGN);
+    *memptr = ptr.add(alignment);
     return 0;
 }
 
@@ -131,7 +131,7 @@ pub unsafe extern "C" fn __libc_malloc(size: usize) -> *mut u8 {
 
 #[no_mangle]
 pub unsafe extern "C" fn malloc(size: usize) -> *mut u8 {
-    let layout = std::alloc::Layout::from_size_align_unchecked(size + ALIGN, ALIGN);
+    let layout = std::alloc::Layout::from_size_align(size + ALIGN, ALIGN).unwrap();
     let ptr = std::alloc::alloc(layout);
 
     if ptr.is_null() {
