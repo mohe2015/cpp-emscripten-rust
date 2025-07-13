@@ -1,5 +1,5 @@
-#include <stdio.h>
+#include <iostream>
 
 extern "C" void experiment() {
-    printf("Hello world\n");
+    std::cout << "Hello world" << std::endl;
 }
