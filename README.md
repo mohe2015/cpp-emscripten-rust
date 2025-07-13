@@ -14,7 +14,7 @@ cd ..
 
 cargo install --git https://github.com/mohe2015/wasm-bindgen --branch emscripten-fixes wasm-bindgen-cli
 
-em++ -O3 -lc -lc++ -lc++abi -r libfoo.cpp -o libfoo.o && emar rcs libfoo.a libfoo.o && wasm-pack build --target web && wasm2wat pkg/rust_wasm_cpp_bg.wasm | grep "(import " | wc -l
+em++ -g -O3 -lc -lc++ -lc++abi -r libfoo.cpp -o libfoo.o && emar rcs libfoo.a libfoo.o && wasm-pack build --dev --target web && wasm2wat pkg/rust_wasm_cpp_bg.wasm | grep "(import "
 
 wasm2wat target/wasm32-unknown-unknown/release/rust_wasm_cpp.wasm > rust_wasm_cpp.wat
 

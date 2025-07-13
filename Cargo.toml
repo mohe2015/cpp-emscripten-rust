@@ -9,3 +9,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 wasm-bindgen = { git = "https://github.com/mohe2015/wasm-bindgen", branch = "emscripten-fixes" }
 js-sys = { git = "https://github.com/mohe2015/wasm-bindgen", branch = "emscripten-fixes" }
+
+[package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+dwarf-debug-info = true

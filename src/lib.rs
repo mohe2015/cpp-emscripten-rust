@@ -195,7 +195,7 @@ pub unsafe extern "C" fn __cxa_throw() {
 // https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L1701
 #[no_mangle]
 pub unsafe extern "C" fn __wasi_environ_get(environ: *mut *mut u8, environ_buf: *mut u8) -> __wasi_errno_t {
-    panic!();
+    // this is probably wrong
     return 0;
 }
 
