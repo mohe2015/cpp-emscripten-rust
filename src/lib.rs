@@ -7,6 +7,13 @@ extern "C" {
     fn log(s: &str);
 }
 
+
+// https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L1829
+#[no_mangle]
+pub unsafe extern "C" fn __wasi_fd_close(fd: u32) -> u16 {
+    panic!();
+}
+
 pub struct Ciovec {
     buf: *const u8,
     len: u32
@@ -20,6 +27,22 @@ pub unsafe extern "C" fn __wasi_fd_write(fd: u32, mut iovs: *const Ciovec, iovs_
         iovs = iovs.add(1);
     }
     0
+}
+
+// https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L2064
+#[no_mangle]
+pub unsafe extern "C" fn __wasi_fd_read(fd: u32, mut iovs: *const Ciovec, iovs_len: u32, nread: *mut u32) -> u16 {
+    panic!();
+}
+
+type __wasi_filedelta_t = i64;
+type __wasi_whence_t = u8;
+type __wasi_filesize_t = u64;
+
+// https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L2150
+#[no_mangle]
+pub unsafe extern "C" fn __wasi_fd_seek(fd: u32, mut offset: __wasi_filedelta_t, whence: __wasi_whence_t, newoffset: *const __wasi_filesize_t) -> u16 {
+    panic!();
 }
 
 /// https://github.com/emscripten-core/emscripten/blob/df69e2ccc287beab6f580f33b33e6b5692f5d20b/system/lib/libc/emscripten_internal.h#L45
@@ -77,6 +100,23 @@ pub unsafe extern "C" fn _abort_js() {
 
 // https://github.com/Spxg/sqlite-wasm-rs/blob/e151a2c230a8c826e5d500af607bb37b8ec2c467/sqlite-wasm-rs/src/shim.rs#L187
 const ALIGN: usize = std::mem::size_of::<usize>() * 2;
+
+// could be implemented wrong
+#[no_mangle]
+pub unsafe extern "C" fn posix_memalign(memptr: *mut *mut u8, alignment: usize, size: usize) -> i32 {
+    let layout = std::alloc::Layout::from_size_align_unchecked(size + alignment, alignment);
+    let ptr = std::alloc::alloc(layout);
+
+    if ptr.is_null() {
+        *memptr = std::ptr::null_mut();
+        return -1;
+    }
+    *ptr.cast::<usize>() = size;
+
+    *memptr = ptr.add(ALIGN);
+    return 0;
+}
+
 
 #[no_mangle]
 pub unsafe extern "C" fn __libc_malloc(size: usize) -> *mut u8 {
