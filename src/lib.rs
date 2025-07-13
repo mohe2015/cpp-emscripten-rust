@@ -38,6 +38,8 @@ pub unsafe extern "C" fn __wasi_fd_read(fd: u32, mut iovs: *const Ciovec, iovs_l
 type __wasi_filedelta_t = i64;
 type __wasi_whence_t = u8;
 type __wasi_filesize_t = u64;
+type __wasi_errno_t = u16;
+type __wasi_size_t = u32; // maybe wrong
 
 // https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L2150
 #[no_mangle]
@@ -117,6 +119,10 @@ pub unsafe extern "C" fn posix_memalign(memptr: *mut *mut u8, alignment: usize, 
     return 0;
 }
 
+#[no_mangle]
+pub unsafe extern "C" fn emscripten_builtin_malloc(size: usize) -> *mut u8 {
+    malloc(size)
+}
 
 #[no_mangle]
 pub unsafe extern "C" fn __libc_malloc(size: usize) -> *mut u8 {
@@ -179,6 +185,25 @@ pub unsafe extern "C" fn calloc(num: usize, size: usize) -> *mut u8 {
         std::ptr::write_bytes(ptr, 0, total);
     }
     ptr
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn __cxa_throw() {
+    panic!();
+}
+
+// https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L1701
+#[no_mangle]
+pub unsafe extern "C" fn __wasi_environ_get(environ: *mut *mut u8, environ_buf: *mut u8) -> __wasi_errno_t {
+    return 0;
+}
+
+// https://github.com/emscripten-core/emscripten/blob/4182f94222db892e16961fbbfd8097c0797d30c4/system/include/wasi/api.h#L1714
+#[no_mangle]
+pub unsafe extern "C" fn __wasi_environ_sizes_get(argc: *mut __wasi_size_t, argv_buf_size: *mut __wasi_size_t) -> __wasi_errno_t {
+    *argc = 0;
+    *argv_buf_size = 0;
+    return 0;
 }
 
 #[link(name = "foo", kind = "static")]
