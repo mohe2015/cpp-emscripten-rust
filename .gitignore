@@ -3,3 +3,4 @@ libfoo.a
 libfoo.js
 libfoo.o
 libfoo.wasm
+*.wat
