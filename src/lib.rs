@@ -100,94 +100,6 @@ pub unsafe extern "C" fn _abort_js() {
     std::process::abort();
 }
 
-// https://github.com/Spxg/sqlite-wasm-rs/blob/e151a2c230a8c826e5d500af607bb37b8ec2c467/sqlite-wasm-rs/src/shim.rs#L187
-const ALIGN: usize = std::mem::size_of::<usize>() * 2;
-
-// could be implemented wrong
-#[no_mangle]
-pub unsafe extern "C" fn posix_memalign(memptr: *mut *mut u8, alignment: usize, size: usize) -> i32 {
-    let layout = std::alloc::Layout::from_size_align(size + alignment, alignment).unwrap();
-    let ptr = std::alloc::alloc(layout);
-
-    if ptr.is_null() {
-        *memptr = std::ptr::null_mut();
-        return 12;
-    }
-    *ptr.cast::<usize>() = size;
-
-    *memptr = ptr.add(alignment);
-    return 0;
-}
-
-// TODO we should somehow verify that the signatures match
-#[no_mangle]
-pub unsafe extern "C" fn emscripten_builtin_malloc(size: u8) -> *mut u8 {
-    malloc(size as usize)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn __libc_malloc(size: usize) -> *mut u8 {
-    malloc(size)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn malloc(size: usize) -> *mut u8 {
-    let layout = std::alloc::Layout::from_size_align(size + ALIGN, ALIGN).unwrap();
-    let ptr = std::alloc::alloc(layout);
-
-    if ptr.is_null() {
-        return std::ptr::null_mut();
-    }
-    *ptr.cast::<usize>() = size;
-
-    ptr.add(ALIGN)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn __libc_free(ptr: *mut u8) {
-    free(ptr)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn free(ptr: *mut u8) {
-    let ptr = ptr.sub(ALIGN);
-    let size = *(ptr.cast::<usize>());
-
-    let layout = std::alloc::Layout::from_size_align_unchecked(size + ALIGN, ALIGN);
-    std::alloc::dealloc(ptr, layout);
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn realloc(ptr: *mut u8, new_size: usize) -> *mut u8 {
-    let ptr = ptr.sub(ALIGN);
-    let size = *(ptr.cast::<usize>());
-
-    let layout = std::alloc::Layout::from_size_align_unchecked(size + ALIGN, ALIGN);
-    let ptr = std::alloc::realloc(ptr, layout, new_size + ALIGN);
-
-    if ptr.is_null() {
-        return std::ptr::null_mut();
-    }
-    *ptr.cast::<usize>() = new_size;
-
-    ptr.add(ALIGN)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn __libc_calloc(num: usize, size: usize) -> *mut u8 {
-    calloc(num, size)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn calloc(num: usize, size: usize) -> *mut u8 {
-    let total = num * size;
-    let ptr = malloc(total);
-    if !ptr.is_null() {
-        std::ptr::write_bytes(ptr, 0, total);
-    }
-    ptr
-}
-
 #[no_mangle]
 pub unsafe extern "C" fn __cxa_throw() {
     panic!();
@@ -206,6 +118,11 @@ pub unsafe extern "C" fn __wasi_environ_sizes_get(argc: *mut __wasi_size_t, argv
     *argc = 0;
     *argv_buf_size = 0;
     return 0;
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn emscripten_resize_heap() {
+    panic!();
 }
 
 #[link(name = "foo", kind = "static")]
