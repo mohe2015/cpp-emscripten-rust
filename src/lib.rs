@@ -12,9 +12,12 @@ pub struct Ciovec {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn __wasi_fd_write(fd: u32, iovs: *const Ciovec, iovs_len: u32, nwritten: *mut u32) -> u16 {
-    log(std::str::from_utf8(std::slice::from_raw_parts((*iovs).buf, (*iovs).len.try_into().unwrap())).unwrap());
-    *nwritten = (*iovs).len;
+pub unsafe extern "C" fn __wasi_fd_write(fd: u32, mut iovs: *const Ciovec, iovs_len: u32, nwritten: *mut u32) -> u16 {
+    for i in 0..iovs_len {
+        log(std::str::from_utf8(std::slice::from_raw_parts((*iovs).buf, (*iovs).len.try_into().unwrap())).unwrap());
+        *nwritten += (*iovs).len;
+        iovs = iovs.add(1);
+    }
     0
 }
 
