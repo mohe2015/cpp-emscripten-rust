@@ -119,9 +119,10 @@ pub unsafe extern "C" fn posix_memalign(memptr: *mut *mut u8, alignment: usize, 
     return 0;
 }
 
+// TODO we should somehow verify that the signatures match
 #[no_mangle]
-pub unsafe extern "C" fn emscripten_builtin_malloc(size: usize) -> *mut u8 {
-    malloc(size)
+pub unsafe extern "C" fn emscripten_builtin_malloc(size: u8) -> *mut u8 {
+    malloc(size as usize)
 }
 
 #[no_mangle]
